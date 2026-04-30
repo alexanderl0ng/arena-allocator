@@ -24,10 +24,6 @@ class Arena {
 
         void reset() noexcept { offset_ = 0; }
 
-        std::size_t save() const noexcept { return offset_; }
-
-        void restore(std::size_t checkpoint) noexcept { offset_ = checkpoint; }
-
     private:
 
         void* allocate_raw(std::size_t size, std::size_t alignment) noexcept {
@@ -39,7 +35,11 @@ class Arena {
             offset_ = aligned_offset + size;
             return ptr;
         }
-        
+        std::size_t save() const noexcept { return offset_; }
+        void restore(std::size_t checkpoint) noexcept { offset_ = checkpoint; }
+
+        friend class ArenaScratch;
+       
         char* buffer_;
         std::size_t capacity_;
         std::size_t offset_;
