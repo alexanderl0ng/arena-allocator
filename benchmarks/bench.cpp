@@ -1,4 +1,5 @@
 #include <unordered_map>
+#include <vector>
 #include <random>
 #include <benchmark/benchmark.h>
 #include "../arena.hpp"
@@ -43,8 +44,9 @@ static void BM_ArenaUnorderedMap_Insert(benchmark::State& state) {
     std::mt19937 rng(79);
     std::uniform_int_distribution<int> dist(1, 1'000'000);
 
+    Arena arena(1024 * 1024);
     for (auto _ : state) {
-        Arena arena(1024 * 1024);
+        ArenaScratch scratch(&arena);
         ArenaAllocator<std::pair<int, long long>> alloc(&arena);
         std::unordered_map<int, long long,
             std::hash<int>,
