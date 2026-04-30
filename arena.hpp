@@ -24,6 +24,10 @@ class Arena {
 
         void reset() noexcept { offset_ = 0; }
 
+        std::size_t save() const noexcept { return offset_; }
+
+        void restore(std::size_t checkpoint) noexcept { offset_ = checkpoint; }
+
     private:
 
         void* allocate_raw(std::size_t size, std::size_t alignment) noexcept {
@@ -41,8 +45,33 @@ class Arena {
         std::size_t offset_;
 };
 
+class ArenaScratch {
+    public:
+        explicit ArenaScratch(Arena* arena) noexcept
+            : arena_(arena), checkpoint_(arena->save()) {}
+
+        ~ArenaScratch() {
+            if (active_) arena_->restore(checkpoint_);
+        }
+
+        ArenaScratch(const ArenaScratch&) = delete;
+        ArenaScratch& operator=(const ArenaScratch&) = delete;
+
+        ArenaScratch(ArenaScratch&& other) noexcept
+            : arena_(other.arena_), checkpoint_(other.checkpoint_), active_(other.active_) {
+            other.active_ = false;
+        }
+
+        void release() noexcept { active_ = false; }
+
+    private:
+        Arena* arena_;
+        std::size_t checkpoint_;
+        bool active_ = true;
+};
+
 template <typename T>
-class ArenaAllocator{
+class ArenaAllocator {
 
     public:
         using value_type = T;
@@ -56,7 +85,9 @@ class ArenaAllocator{
         friend class ArenaAllocator;
 
         T* allocate(std::size_t n) {
-            return static_cast<T*>(arena_->allocate<T>(n));
+            T* ptr = static_cast<T*>(arena_->allocate<T>(n));
+            if (!ptr) throw std::bad_alloc();
+            return ptr;
         }
 
         void deallocate(T* /*p*/, std::size_t /*n*/) noexcept {}
