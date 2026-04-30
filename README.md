@@ -26,6 +26,7 @@ std::unordered_map<int, long long,
 ```
 
 ## Benchmarks
+```
 ----------------------------------------------------------------------------
 Benchmark                                  Time             CPU   Iterations
 ----------------------------------------------------------------------------
@@ -37,6 +38,7 @@ BM_UnorderedMap_Insert/10000          511518 ns       511513 ns         1359
 BM_ArenaUnorderedMap_Insert/100         3496 ns         3496 ns       200274
 BM_ArenaUnorderedMap_Insert/1000       31003 ns        31003 ns        22630
 BM_ArenaUnorderedMap_Insert/10000     322900 ns       322892 ns         2168
+```
 
 Benchmarks run on an Apple M1 Pro. See `benchmarks/bench.cpp` for details.
 
