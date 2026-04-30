@@ -33,7 +33,7 @@ class Arena {
         void* allocate_raw(std::size_t size, std::size_t alignment) noexcept {
             std::size_t aligned_offset = (offset_ + alignment - 1) & ~(alignment - 1);
 
-            if (size > capacity_ - aligned_offset) return nullptr;
+            if (aligned_offset > capacity_ || size > capacity_ - aligned_offset) return nullptr;
 
             void* ptr = buffer_ + aligned_offset;
             offset_ = aligned_offset + size;
@@ -50,7 +50,7 @@ class ArenaScratch {
         explicit ArenaScratch(Arena* arena) noexcept
             : arena_(arena), checkpoint_(arena->save()) {}
 
-        ~ArenaScratch() {
+        ~ArenaScratch() noexcept {
             if (active_) arena_->restore(checkpoint_);
         }
 
