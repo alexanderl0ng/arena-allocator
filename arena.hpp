@@ -41,3 +41,35 @@ class Arena {
         std::size_t offset_;
 };
 
+template <typename T>
+class ArenaAllocator{
+
+    public:
+        using value_type = T;
+
+        explicit ArenaAllocator(Arena* arena) noexcept : arena_(arena) {}
+
+        template <typename U>
+        ArenaAllocator(const ArenaAllocator<U>& other) noexcept : arena_(other.arena_) {}
+
+        template <typename U>
+        friend class ArenaAllocator;
+
+        T* allocate(std::size_t n) {
+            return static_cast<T*>(arena_->allocate<T>(n));
+        }
+
+        void deallocate(T* /*p*/, std::size_t /*n*/) noexcept {}
+
+        bool operator==(const ArenaAllocator& other) const noexcept {
+            return arena_ == other.arena_;
+        }
+
+        bool operator!=(const ArenaAllocator& other) const noexcept {
+            return !(*this == other);
+        }
+
+    private:
+        Arena* arena_;
+};
+
