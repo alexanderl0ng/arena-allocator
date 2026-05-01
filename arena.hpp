@@ -1,4 +1,5 @@
 #pragma once
+#include <stdexcept>
 #include <cstddef>
 #include <new>
 
@@ -6,7 +7,7 @@ class Arena {
 
     public:
         explicit Arena(std::size_t size)
-            : buffer_(static_cast<char*>(::operator new(size))),
+            : buffer_(allocate_buffer(size)),
                         capacity_(size), offset_(0) {}
 
         ~Arena() {
@@ -17,24 +18,31 @@ class Arena {
         Arena(Arena&&) = delete;
 
         template<typename T>
-        T* allocate(std::size_t count = 1) noexcept {
+        [[nodiscard]] T* allocate(std::size_t count = 1) {
             void* ptr = allocate_raw(sizeof(T) * count, alignof(T));
+            if (!ptr) throw std::bad_alloc();
             return static_cast<T*>(ptr);
         }
 
         void reset() noexcept { offset_ = 0; }
 
     private:
+        static char* allocate_buffer(std::size_t size) {
+            if (size == 0) throw std::invalid_argument("Arena size must be greater than 0");
+            return static_cast<char*>(::operator new(size));
+        }
 
         void* allocate_raw(std::size_t size, std::size_t alignment) noexcept {
             std::size_t aligned_offset = (offset_ + alignment - 1) & ~(alignment - 1);
 
-            if (aligned_offset > capacity_ || size > capacity_ - aligned_offset) return nullptr;
+            if (aligned_offset < offset_) return nullptr;
+            if (size > capacity_ - aligned_offset) return nullptr;
 
             void* ptr = buffer_ + aligned_offset;
             offset_ = aligned_offset + size;
             return ptr;
         }
+
         std::size_t save() const noexcept { return offset_; }
         void restore(std::size_t checkpoint) noexcept { offset_ = checkpoint; }
 
@@ -61,6 +69,7 @@ class ArenaScratch {
             : arena_(other.arena_), checkpoint_(other.checkpoint_), active_(other.active_) {
             other.active_ = false;
         }
+        ArenaScratch& operator=(ArenaScratch&&) = delete;
 
         void release() noexcept { active_ = false; }
 
