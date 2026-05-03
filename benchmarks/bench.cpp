@@ -46,7 +46,7 @@ static void BM_ArenaUnorderedMap_Insert(benchmark::State& state) {
 
     Arena arena(1024 * 1024);
     for (auto _ : state) {
-        ArenaScratch scratch(&arena);
+        Arena::Scratch scratch = arena.scratch();
         ArenaAllocator<std::pair<int, long long>> alloc(&arena);
         std::unordered_map<int, long long,
             std::hash<int>,
