@@ -4,7 +4,7 @@
 #include <benchmark/benchmark.h>
 #include "../arena.hpp"
 
-static void BM_New(benchmark::State& state) {
+static void BM_NewDouble(benchmark::State& state) {
     for (auto _ : state) {
         double* d = new double(3.14);
         benchmark::DoNotOptimize(d);
@@ -12,7 +12,7 @@ static void BM_New(benchmark::State& state) {
     }
 }
 
-static void BM_Arena(benchmark::State& state) {
+static void BM_ArenaDouble(benchmark::State& state) {
     Arena arena(1024 * 16);
     for (auto _ : state) {
         double* d = arena.allocate<double>();
