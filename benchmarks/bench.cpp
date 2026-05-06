@@ -67,10 +67,38 @@ static void BM_ArenaUnorderedMap_Insert(benchmark::State& state) {
     }
 }
 
+static void BM_Vector_Insert(benchmark::State& state) {
+    std::size_t num_elements = state.range(0);
 
+    for (auto _ : state) {
+        std::vector<long long> vec;
+        for (std::size_t i = 0; i < num_elements; ++i) {
+            vec.push_back(i);
+        }
 
-BENCHMARK(BM_New);
-BENCHMARK(BM_Arena);
+    benchmark::DoNotOptimize(vec);
+    }
+}
+
+static void BM_ArenaVector_Insert(benchmark::State& state) {
+    std::size_t num_elements = state.range(0);
+
+    Arena arena(1024 * 1024);
+    for (auto _ : state) {
+        Arena::Scratch scratch = arena.scratch();
+        ArenaAllocator<long long> alloc(&arena);
+
+        std::vector<long long, ArenaAllocator<long long>> vec(alloc);
+        for (std::size_t i = 0; i < num_elements; ++i) {
+            vec.push_back(i);
+        }
+
+    benchmark::DoNotOptimize(vec);
+    }
+}
+
+BENCHMARK(BM_NewDouble);
+BENCHMARK(BM_ArenaDouble);
 
 BENCHMARK(BM_UnorderedMap_Insert)
     ->Arg(100)
@@ -78,6 +106,16 @@ BENCHMARK(BM_UnorderedMap_Insert)
     ->Arg(10'000);
 
 BENCHMARK(BM_ArenaUnorderedMap_Insert)
+    ->Arg(100)
+    ->Arg(1'000)
+    ->Arg(10'000);
+
+BENCHMARK(BM_Vector_Insert)
+    ->Arg(100)
+    ->Arg(1'000)
+    ->Arg(10'000);
+
+BENCHMARK(BM_ArenaVector_Insert)
     ->Arg(100)
     ->Arg(1'000)
     ->Arg(10'000);
