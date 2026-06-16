@@ -31,7 +31,7 @@ struct TestSection {
 int main() {
     {
     TestSection("General Allocation");
-    Arena a(1024);
+    arena::Arena a(1024);
     assert(a.allocate<int>() != nullptr);
     auto* p = a.allocate<Aligned16>();
     assert(reinterpret_cast<std::uintptr_t>(p) % 16 == 0);
@@ -44,7 +44,7 @@ int main() {
 
     {
     TestSection("Exhaustion");
-    Arena a(sizeof(int));
+    arena::Arena a(sizeof(int));
     std::ignore = a.allocate<int>();
     bool threw = false;
     try { std::ignore = a.allocate<int>(); } catch (const std::bad_alloc&) { threw = true; }
@@ -55,7 +55,7 @@ int main() {
     TestSection("create<T> and destructor ordering");
     g_events.clear();
         {
-        Arena a(2048);
+        arena::Arena a(2048);
         std::ignore = a.create<Tracked>(1);
         std::ignore = a.create<Tracked>(2);
         std::ignore = a.create<Tracked>(3);
@@ -67,7 +67,7 @@ int main() {
     {
     TestSection("Exception in constructor");
     g_events.clear();
-    Arena a(1024);
+    arena::Arena a(1024);
     std::size_t before = a.bytes_used();
     try { std::ignore = a.create<ThrowingConstructor>(); } catch (...) {}
     assert(a.bytes_used() == before);
@@ -78,7 +78,7 @@ int main() {
     {
     TestSection("Scratch allocations");
     g_events.clear();
-    Arena a(4096);
+    arena::Arena a(4096);
     std::ignore = a.create<Tracked>(1);
     std::size_t base = a.bytes_used();
     {
@@ -94,7 +94,7 @@ int main() {
 
     {
     TestSection("Nested scratch allocations");
-    Arena a(4096);
+    arena::Arena a(4096);
     auto outer = a.scratch();
     std::ignore = outer.allocate<int>(10);
     std::size_t mid = a.bytes_used();
@@ -108,19 +108,19 @@ int main() {
 
     {
     TestSection("Moving the arena");
-    Arena a(1024);
+    arena::Arena a(1024);
     int* p = a.allocate<int>();
     *p = 42;
-    Arena b(std::move(a));
+    arena::Arena b(std::move(a));
     assert(*p == 42);
     assert(a.bytes_reserved() == 0);
     }
 
     {
     TestSection("STL Allocator");
-    Arena a(1024 * 64);
-    ArenaAllocator<int> alloc(&a);
-    std::vector<int, ArenaAllocator<int>> v(alloc);
+    arena::Arena a(1024 * 64);
+    arena::ArenaAllocator<int> alloc(&a);
+    std::vector<int, arena::ArenaAllocator<int>> v(alloc);
     for (int i = 0; i < 100; ++i) v.push_back(i);
     for (int i = 0; i < 100; ++i) assert(v[i] == i);
     }

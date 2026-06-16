@@ -5,6 +5,8 @@
 #include <memory>
 #include <new>
 
+namespace arena {
+
 class Arena {
 
 public:
@@ -217,4 +219,4 @@ public:
 private:
     Arena* arena_;
 };
-
+} // namespace arena

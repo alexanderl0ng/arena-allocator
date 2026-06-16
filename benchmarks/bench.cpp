@@ -13,11 +13,11 @@ static void BM_NewDouble(benchmark::State& state) {
 }
 
 static void BM_ArenaDouble(benchmark::State& state) {
-    Arena arena(1024 * 16);
+    arena::Arena a(1024 * 16);
     for (auto _ : state) {
-        double* d = arena.allocate<double>();
+        double* d = a.allocate<double>();
         benchmark::DoNotOptimize(d);
-        arena.reset();
+        a.reset();
     }
 }
 
@@ -44,14 +44,14 @@ static void BM_ArenaUnorderedMap_Insert(benchmark::State& state) {
     std::mt19937 rng(79);
     std::uniform_int_distribution<int> dist(1, 1'000'000);
 
-    Arena arena(1024 * 1024);
+    arena::Arena a(1024 * 1024);
     for (auto _ : state) {
-        Arena::Scratch scratch = arena.scratch();
-        ArenaAllocator<std::pair<int, long long>> alloc(&arena);
+        arena::Arena::Scratch scratch = a.scratch();
+        arena::ArenaAllocator<std::pair<int, long long>> alloc(&a);
         std::unordered_map<int, long long,
             std::hash<int>,
             std::equal_to<int>,
-            ArenaAllocator<std::pair<const int, long long>>
+            arena::ArenaAllocator<std::pair<const int, long long>>
         > map(
             0,
             std::hash<int>(),
@@ -83,12 +83,12 @@ static void BM_Vector_Insert(benchmark::State& state) {
 static void BM_ArenaVector_Insert(benchmark::State& state) {
     std::size_t num_elements = state.range(0);
 
-    Arena arena(1024 * 1024);
+    arena::Arena a(1024 * 1024);
     for (auto _ : state) {
-        Arena::Scratch scratch = arena.scratch();
-        ArenaAllocator<long long> alloc(&arena);
+        arena::Arena::Scratch scratch = a.scratch();
+        arena::ArenaAllocator<long long> alloc(&a);
 
-        std::vector<long long, ArenaAllocator<long long>> vec(alloc);
+        std::vector<long long, arena::ArenaAllocator<long long>> vec(alloc);
         for (std::size_t i = 0; i < num_elements; ++i) {
             vec.push_back(i);
         }

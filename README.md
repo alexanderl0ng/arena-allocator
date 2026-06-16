@@ -9,37 +9,37 @@ A single-header arena (bump-pointer) allocator in C++.
 ```cpp
 #include "arena.hpp"
 
-Arena arena(1024);
+arena::Arena a(1024);
 
 // Allocate the raw memory for trivial types
-double* d = arena.allocate<double>();
+double* d = a.allocate<double>();
 
 // Assigning a value to the allocated memory
 *d = 3.14;
 
 // Reclaim all memory at once
-arena.reset();
+a.reset();
 ```
 
 ### Non-Trivial Types
 Use `create<T>()` to construct non-trivially destructible types in the arena. Destructors are automatically called on `reset()` and `~Arena()`:
 ```cpp
-Arena arena(1024);
+arena::Arena a(1024);
 
-std::string* s = arena.create<std::string>("Hello");
+std::string* s = a.create<std::string>("Hello");
 
 // ~std::string is called here
-arena.reset()
+a.reset()
 
 ```
 
 ### Scoped Allocation with Scratch
 `Scratch` provides scoped allocations. All memory allocated through a scratch arena are automatically rolled back (with destructors called) when the scratch arena goes out of scope:
 ```cpp
-Arena arena(1024 * 1024);
+arena::Arena a(1024 * 1024);
 
 {
-    Arena::Scratch scratch = arena.scratch();
+    arena::Arena::Scratch scratch = a.scratch();
 
     double* d = scratch.allocate<double>();
     std::string* s = scratch.create<std::string>("Hello");
@@ -50,13 +50,13 @@ Arena arena(1024 * 1024);
 `arena.hpp` also includes `ArenaAllocator`, an STL-compatible wrapper for use with standard containers:
 
 ```cpp
-Arena arena(1024 * 1024);
-ArenaAllocator<std::pair<const int, long long>> alloc(&arena);
+arena::Arena a(1024 * 1024);
+arena::ArenaAllocator<std::pair<const int, long long>> alloc(&a);
 
 std::unordered_map<int, long long,
     std::hash<int>,
     std::equal_to<int>,
-    ArenaAllocator<std::pair<const int, long long>>
+    arena::ArenaAllocator<std::pair<const int, long long>>
 > map(0, std::hash<int>(), std::equal_to<int>(), alloc);
 ```
 
