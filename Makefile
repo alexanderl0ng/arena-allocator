@@ -1,11 +1,11 @@
 CXX 			:= g++
-SRC_DIR 		:= benchmarks
-SRCS 			:= $(wildcard $(SRC_DIR)/*.cpp)
+BENCH_DIR		:= benchmarks
+TEST_DIR		:= tests
+BENCH_SRCS 		:= $(wildcard $(BENCH_DIR)/*.cpp)
+TEST_SRCS		:= $(wildcard $(TEST_DIR)/*.cpp)
 
 DEBUG_DIR 		:= debug
 RELEASE_DIR 	:= release
-DEBUG_OUT 		:= $(DEBUG_DIR)/bench
-RELEASE_OUT 	:= $(RELEASE_DIR)/bench
 
 DEBUG_FLAGS 	:= -std=c++20 -Wall -Wextra -g -O0 -DDEBUG
 RELEASE_FLAGS 	:= -std=c++20 -Wall -Wextra -O2 -DNDEBUG
@@ -17,10 +17,12 @@ BENCHMARK_FLAGS	:= $(shell pkg-config --cflags --libs benchmark)
 all: debug release
 
 debug: | $(DEBUG_DIR)/
-	$(CXX) $(DEBUG_FLAGS) $(SRCS) $(BENCHMARK_FLAGS) -o $(DEBUG_OUT)
+	$(CXX) $(DEBUG_FLAGS) $(BENCH_SRCS) $(BENCHMARK_FLAGS) -o $(DEBUG_DIR)/bench
+	$(CXX) $(DEBUG_FLAGS) $(TEST_SRCS) -o $(DEBUG_DIR)/tests
 
 release: | $(RELEASE_DIR)/
-	$(CXX) $(RELEASE_FLAGS) $(SRCS) $(BENCHMARK_FLAGS) -o $(RELEASE_OUT)
+	$(CXX) $(RELEASE_FLAGS) $(BENCH_SRCS) $(BENCHMARK_FLAGS) -o $(RELEASE_DIR)/bench
+	$(CXX) $(RELEASE_FLAGS) -UNDEBUG $(TEST_SRCS) -o $(RELEASE_DIR)/tests
 
 $(DEBUG_DIR)/:
 	mkdir -p $@
@@ -29,10 +31,16 @@ $(RELEASE_DIR)/:
 	mkdir -p $@
 
 run-debug: debug
-	./$(DEBUG_OUT)
+	./$(DEBUG_DIR)/bench
 
 run-release: release
-	./$(RELEASE_OUT)
+	./$(RELEASE_DIR)/bench
+
+run-debug-tests: debug
+	./$(DEBUG_DIR)/tests
+
+run-release-tests: release
+	./$(RELEASE_DIR)/tests
 
 clean:
 	rm -rf $(DEBUG_DIR) $(RELEASE_DIR)

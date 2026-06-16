@@ -98,26 +98,26 @@ public:
     template <typename T, typename... Args>
     [[nodiscard]] T* create(Args&&... args) {
         std::size_t saved = offset_;
-        T* ptr = allocate<T>();
-
-        DestructorNode* node = nullptr;
-        if constexpr (!std::is_trivially_destructible_v<T>) node = allocate<DestructorNode>();
 
         try {
-            ::new(ptr) T(std::forward<Args>(args)...);
-        } catch (...) {
-            offset_ = saved;
-            throw;
-        }
+            T* ptr = allocate<T>();
 
-        if constexpr (!std::is_trivially_destructible_v<T>) {
+            DestructorNode* node = nullptr;
+            if constexpr (!std::is_trivially_destructible_v<T>) node = allocate<DestructorNode>();
+
+            ::new(ptr) T(std::forward<Args>(args)...);
+            if constexpr (!std::is_trivially_destructible_v<T>) {
             node->destructor = [](void* p) { static_cast<T*>(p)->~T(); };
             node->object = ptr;
             node->next = destructor_head_;
             destructor_head_ = node;
-        }
+            }
 
-        return ptr;
+            return ptr;
+        } catch (...) {
+            offset_ = saved;
+            throw;
+        }
     }
 
     [[nodiscard]] Arena::Scratch scratch() noexcept {

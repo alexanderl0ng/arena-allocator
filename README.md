@@ -51,7 +51,7 @@ Arena arena(1024 * 1024);
 
 ```cpp
 Arena arena(1024 * 1024);
-ArenaAllocator<std::pair<const int, long long> alloc(&arena);
+ArenaAllocator<std::pair<const int, long long>> alloc(&arena);
 
 std::unordered_map<int, long long,
     std::hash<int>,
@@ -60,22 +60,31 @@ std::unordered_map<int, long long,
 > map(0, std::hash<int>(), std::equal_to<int>(), alloc);
 ```
 
+### Moving the Arena
+The arena can be moved, it cannot be copied. Using the move from arena is undefined behaviour since it is not "dead", it is still reusable. It will throw `std::bad_alloc` if an allocation is attempted.
+
 ## Benchmarks
 ```
 ----------------------------------------------------------------------------
 Benchmark                                  Time             CPU   Iterations
 ----------------------------------------------------------------------------
-BM_New                                  14.2 ns         14.2 ns     49358342
-BM_Arena                               0.310 ns        0.310 ns   2255932296
-BM_UnorderedMap_Insert/100              5257 ns         5257 ns       131310
-BM_UnorderedMap_Insert/1000            52151 ns        52148 ns        13346
-BM_UnorderedMap_Insert/10000          511518 ns       511513 ns         1359
-BM_ArenaUnorderedMap_Insert/100         3496 ns         3496 ns       200274
-BM_ArenaUnorderedMap_Insert/1000       31003 ns        31003 ns        22630
-BM_ArenaUnorderedMap_Insert/10000     322900 ns       322892 ns         2168
+BM_NewDouble                            8.99 ns         8.99 ns     80029268
+BM_ArenaDouble                         0.226 ns        0.226 ns   3098387068
+BM_UnorderedMap_Insert/100              3500 ns         3500 ns       199325
+BM_UnorderedMap_Insert/1000            34346 ns        34346 ns        20228
+BM_UnorderedMap_Insert/10000          368759 ns       368753 ns         1967
+BM_ArenaUnorderedMap_Insert/100         2355 ns         2354 ns       299770
+BM_ArenaUnorderedMap_Insert/1000       21724 ns        21723 ns        32456
+BM_ArenaUnorderedMap_Insert/10000     233644 ns       233640 ns         3049
+BM_Vector_Insert/100                     174 ns          174 ns      4001143
+BM_Vector_Insert/1000                    554 ns          554 ns      1276836
+BM_Vector_Insert/10000                  6928 ns         6928 ns        99816
+BM_ArenaVector_Insert/100               58.2 ns         58.2 ns     12159956
+BM_ArenaVector_Insert/1000               358 ns          358 ns      1967342
+BM_ArenaVector_Insert/10000             4997 ns         4997 ns       138192
 ```
 
-Benchmarks run on an Apple M1 Pro. See `benchmarks/bench.cpp` for details.
+Benchmarks run on an Apple M4. See `benchmarks/bench.cpp` for details.
 
 ## Design
 - **Linear Allocation** - offset is advanced through a fixed set buffer with bitwise alignment (which offers fairly significant performance improvements over std::align) and overflow-safe bounds checking.
