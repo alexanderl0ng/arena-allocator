@@ -16,19 +16,15 @@ BENCHMARK_FLAGS	:= $(shell pkg-config --cflags --libs benchmark)
 
 all: debug release
 
-debug: | $(DEBUG_DIR)/
+debug:
+	mkdir -p $(DEBUG_DIR)
 	$(CXX) $(DEBUG_FLAGS) $(BENCH_SRCS) $(BENCHMARK_FLAGS) -o $(DEBUG_DIR)/bench
 	$(CXX) $(DEBUG_FLAGS) $(TEST_SRCS) -o $(DEBUG_DIR)/tests
 
-release: | $(RELEASE_DIR)/
+release:
+	mkdir -p $(RELEASE_DIR)
 	$(CXX) $(RELEASE_FLAGS) $(BENCH_SRCS) $(BENCHMARK_FLAGS) -o $(RELEASE_DIR)/bench
 	$(CXX) $(RELEASE_FLAGS) -UNDEBUG $(TEST_SRCS) -o $(RELEASE_DIR)/tests
-
-$(DEBUG_DIR)/:
-	mkdir -p $@
-
-$(RELEASE_DIR)/:
-	mkdir -p $@
 
 run-debug: debug
 	./$(DEBUG_DIR)/bench
